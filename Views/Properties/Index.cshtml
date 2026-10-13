@@ -1,0 +1,118 @@
+﻿@model IEnumerable<Staybnb.Models.Property>
+
+@{
+    ViewData["Title"] = "Browse Properties";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Find Your Perfect Stay</h2>
+
+    <!-- Filters Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- City Filter -->
+                <div class="col-md-4">
+                    <label for="city" class="form-label">City</label>
+                    <select id="city" name="city" class="form-select">
+                        <option value="">All Cities</option>
+                        @foreach (var c in ViewBag.Cities)
+                        {
+                            <option value="@c" selected="@(ViewBag.SelectedCity == c)">@c</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Property Type Filter -->
+                <div class="col-md-4">
+                    <label for="propertyType" class="form-label">Property Type</label>
+                    <select id="propertyType" name="propertyType" class="form-select">
+                        <option value="">All Types</option>
+                        @foreach (var t in ViewBag.PropertyTypes)
+                        {
+                            <option value="@t" selected="@(ViewBag.SelectedPropertyType == t)">@t</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Search Button -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Properties Grid -->
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var property in Model)
+            {
+                var primaryImage = property.PropertyImages.FirstOrDefault(pi => pi.IsPrimary) 
+                                    ?? property.PropertyImages.FirstOrDefault();
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm property-card">
+                        <!-- Property Image -->
+                        @if (primaryImage != null)
+                        {
+                            <img src="@primaryImage.ImageUrl" class="card-img-top" alt="@property.Title" style="height: 250px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <span class="text-muted">No Image</span>
+                            </div>
+                        }
+
+                        <div class="card-body">
+                            <!-- Title -->
+                            <h5 class="card-title">@property.Title</h5>
+
+                            <!-- Location -->
+                            <p class="card-text text-muted">
+                                <small>📍 @property.City</small>
+                            </p>
+
+                            <!-- Description (truncated) -->
+                            <p class="card-text">
+                                <small>@(property.Description.Length > 100 ? property.Description.Substring(0, 100) + "..." : property.Description)</small>
+                            </p>
+
+                            <!-- Property Details -->
+                            <div class="mb-3">
+                                <span class="badge bg-info">@property.PropertyType</span>
+                                <span class="badge bg-secondary">@property.MaxGuests Guests</span>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 text-primary mb-0">€@property.PricePerNight.ToString("F2")/night</span>
+                                <a asp-action="Details" asp-route-id="@property.Id" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">No Properties Found</h4>
+            <p>Sorry, there are no properties available matching your criteria. Try adjusting your filters.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .property-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .property-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+</style>

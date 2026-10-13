@@ -1,0 +1,156 @@
+﻿@model Staybnb.Models.Property
+
+@{
+    ViewData["Title"] = Model.Title;
+    var primaryImage = Model.PropertyImages.FirstOrDefault(pi => pi.IsPrimary) 
+                       ?? Model.PropertyImages.FirstOrDefault();
+}
+
+<div class="container mt-5">
+    <!-- Property Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>@Model.Title</h1>
+            <p class="text-muted">
+                <span>📍 @Model.City</span>
+                <span class="ms-3">🏠 @Model.PropertyType</span>
+                <span class="ms-3">👥 Up to @Model.MaxGuests guests</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <h3 class="text-primary">€@Model.PricePerNight.ToString("F2")</h3>
+            <p class="text-muted">per night</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Images Column -->
+        <div class="col-md-8 mb-4">
+            <!-- Main Image -->
+            @if (primaryImage != null)
+            {
+                <div class="mb-3">
+                    <img id="mainImage" src="@primaryImage.ImageUrl" class="img-fluid rounded" alt="@Model.Title" style="max-height: 500px; width: 100%; object-fit: cover;" />
+                </div>
+            }
+            else
+            {
+                <div class="mb-3 bg-light rounded d-flex align-items-center justify-content-center" style="height: 500px;">
+                    <span class="text-muted">No images available</span>
+                </div>
+            }
+
+            <!-- Image Thumbnails -->
+            @if (Model.PropertyImages.Any())
+            {
+                <div class="row g-2">
+                    @foreach (var image in Model.PropertyImages.Take(6))
+                    {
+                        <div class="col-3 col-md-2">
+                            <img src="@image.ImageUrl" class="img-fluid rounded thumbnail-image" alt="@image.AltText" 
+                                 style="cursor: pointer; height: 80px; object-fit: cover;" 
+                                 onclick="changeMainImage('@image.ImageUrl')" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar Column -->
+        <div class="col-md-4">
+            <!-- Host Info Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Hosted by</h5>
+                    <p class="mb-2">
+                        <strong>@Model.Host.FullName</strong>
+                    </p>
+                    <p class="text-muted small">
+                        Joined @Model.Host.DateCreated.ToString("MMMM yyyy")
+                    </p>
+                </div>
+            </div>
+
+            <!-- Book Now Card -->
+            <div class="card mb-4 shadow-sm border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Ready to book?</h5>
+                    <p class="card-text mb-3">
+                        <strong>€@Model.PricePerNight.ToString("F2")</strong> per night
+                    </p>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a asp-controller="Bookings" asp-action="Create" asp-route-propertyId="@Model.Id" 
+                           class="btn btn-primary w-100">Book Now</a>
+                    }
+                    else
+                    {
+                        <p class="alert alert-info mb-3 p-2">
+                            <small>Sign in to make a booking</small>
+                        </p>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary w-100">Sign In to Book</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description Section -->
+    <div class="row mt-5">
+        <div class="col-md-8">
+            <h3 class="mb-3">About this property</h3>
+            <p>@Model.Description</p>
+
+            <hr />
+
+            <!-- Property Details -->
+            <h4 class="mb-3">Property Details</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <p><strong>Property Type:</strong> @Model.PropertyType</p>
+                    <p><strong>Max Guests:</strong> @Model.MaxGuests</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <p><strong>City:</strong> @Model.City</p>
+                    <p><strong>Address:</strong> @Model.Address</p>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Check-in Process -->
+            @if (Model.CheckInProcess != null)
+            {
+                <h4 class="mb-3">Check-in Information</h4>
+                <div class="alert alert-light border">
+                    <p><strong>Check-in Time:</strong> @Model.CheckInProcess.EarliestCheckInTime.ToString(@"hh\:mm")</p>
+                    <p><strong>Check-out Time:</strong> @Model.CheckInProcess.LatestCheckOutTime.ToString(@"hh\:mm")</p>
+                    
+                    @if (!string.IsNullOrEmpty(Model.CheckInProcess.HouseRules))
+                    {
+                        <p><strong>House Rules:</strong></p>
+                        <p>@Model.CheckInProcess.HouseRules</p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.CheckInProcess.CheckInInstructions))
+                    {
+                        <p><strong>Check-in Instructions:</strong></p>
+                        <p>@Model.CheckInProcess.CheckInInstructions</p>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.CheckInProcess.RequiredDocuments))
+                    {
+                        <p><strong>Required Documents:</strong></p>
+                        <p>@Model.CheckInProcess.RequiredDocuments</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeMainImage(imageUrl) {
+        document.getElementById('mainImage').src = imageUrl;
+    }
+</script>
